@@ -115,7 +115,7 @@ def venues():
     venues = Venue.query.filter_by(city=ciudad[0], state=ciudad[1]).all()
     data.append({'city': ciudad[0], 'state': ciudad[1], 'venues': venues})
 
-  return render_template('pages/venues.html', areas=data);
+  return render_template('pages/venues.html', areas=data)
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
@@ -224,19 +224,34 @@ def create_venue_form():
   form = VenueForm()
   return render_template('forms/new_venue.html', form=form)
 
+
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-  # TODO: insert form data as a new Venue record in the db, instead
-  # TODO: modify data to be the data object returned from db insertion
+  try:
+    venue = Venue(
+      name=request.form.get('name'),
+      city=request.form.get('city'),
+      state=request.form.get('state'),
+      address=request.form.get('address'),
+      phone=request.form.get('phone', ''),
+      genres=request.form.getlist('genres'),
+      facebook_link=request.form.get('facebook_link', ''),
+      website=request.form.get('website', ''),
+      seeking_talent= request.form.get('seeking_talent', False)=="y",
+      seeking_description=request.form.get('seeking_description', '')
+    )
+    db.session.add(venue)
+    db.session.commit()
+    flash('Venue ' + request.form['name'] + ' was successfully listed!')
+  except Exception as e:
+    db.session.rollback()
+    flash('Error: Venue ' + request.form.get('name') + ' can\'t be created.' + repr(e))
 
-  # on successful db insert, flash success
-  flash('Venue ' + request.form['name'] + ' was successfully listed!')
-  # TODO: on unsuccessful db insert, flash an error instead.
-  # e.g., flash('An error occurred. Venue ' + data.name + ' could not be listed.')
-  # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
+  finally:
+    db.session.close()
+
   return render_template('pages/home.html')
 
-@app.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
   # TODO: Complete this endpoint for taking a venue_id, and using
   # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
