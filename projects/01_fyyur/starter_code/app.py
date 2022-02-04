@@ -233,26 +233,36 @@ def show_artist(artist_id):
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
 def edit_artist(artist_id):
   form = ArtistForm()
-  artist={
-    "id": 4,
-    "name": "Guns N Petals",
-    "genres": ["Rock n Roll"],
-    "city": "San Francisco",
-    "state": "CA",
-    "phone": "326-123-5000",
-    "website": "https://www.gunsnpetalsband.com",
-    "facebook_link": "https://www.facebook.com/GunsNPetals",
-    "seeking_venue": True,
-    "seeking_description": "Looking for shows to perform at in the San Francisco Bay Area!",
-    "image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80"
-  }
-  # TODO: populate form with fields from artist with ID <artist_id>
+  # populate form with fields from artist with ID <artist_id>
+  artist = Artist.query.get(artist_id)
   return render_template('forms/edit_artist.html', form=form, artist=artist)
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
-  # TODO: take values from the form submitted, and update existing
+  # take values from the form submitted, and update existing
   # artist record with ID <artist_id> using the new attributes
+
+  try:
+    artist = Artist.query.get(artist_id)
+    artist.name=request.form.get('name')
+    artist.city=request.form.get('city')
+    artist.state=request.form.get('state')
+    artist.phone=request.form.get('phone', '')
+    artist.genres=request.form.getlist('genres')
+    artist.facebook_link=request.form.get('facebook_link', '')
+    artist.website=request.form.get('website', '')
+    artist.image_link=request.form.get('image_link', '')
+    artist.seeking_venue=request.form.get('seeking_venue', False)=="on"
+    artist.seeking_description=request.form.get('seeking_description', '')
+
+    db.session.commit()
+    flash('Artist ' + request.form['name'] + ' was successfully listed!')
+  except Exception as e:
+    db.session.rollback()
+    flash('An error occurred. Artist ' + artist.name + ' could not be listed.' + repr(e))
+
+  finally:
+    db.session.close()
 
   return redirect(url_for('show_artist', artist_id=artist_id))
 
@@ -304,7 +314,7 @@ def create_artist_form():
 def create_artist_submission():
   # called upon submitting the new artist listing form
   try:
-    artist = Artist(
+    artista = Artist(
       name=request.form.get('name'),
       city=request.form.get('city'),
       state=request.form.get('state'),
@@ -316,12 +326,12 @@ def create_artist_submission():
       seeking_venue=request.form.get('seeking_venue', False)=="y",
       seeking_description=request.form.get('seeking_description', '')
     )
-    db.session.add(artist)
+    db.session.add(artista)
     db.session.commit()
     flash('Artist ' + request.form['name'] + ' was successfully listed!')
   except Exception as e:
     db.session.rollback()
-    flash('An error occurred. Artist ' + data.name + ' could not be listed.' + repr(e))
+    flash('An error occurred. Artist ' + artista.name + ' could not be listed.' + repr(e))
 
   finally:
     db.session.close()
