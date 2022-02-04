@@ -13,3 +13,7 @@ ehthumbs.db
 Thumbs.db
 
 .github/**
+
+projects/01_fyyur/starter_code/node_modules/
+
+projects/01_fyyur/starter_code/.idea/
