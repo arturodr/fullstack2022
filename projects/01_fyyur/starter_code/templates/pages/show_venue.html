@@ -7,7 +7,7 @@
 			{{ venue.name }}
 		</h1>
 		<p class="subtitle">
-			ID: {{ venue.id }}
+			ID: {{ venue.id }} <button onclick="delete_venue({{ venue.id }})" type="button" value="Delete">X Delete</button>
 		</p>
 		<div class="genres">
 			{% for genre in venue.genres %}
@@ -79,3 +79,12 @@
 
 {% endblock %}
 
+{% block js %}
+<script>
+    function delete_venue(id) {
+        fetch('/venues/'+id, {method: 'DELETE'})
+            .then(window.location = '/')
+            .catch(function(err) {console.info(err);});
+    }
+</script>
+{% endblock %}
