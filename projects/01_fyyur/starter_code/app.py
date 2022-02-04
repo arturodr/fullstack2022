@@ -11,7 +11,7 @@ from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 import logging
 from logging import Formatter, FileHandler
-from flask_wtf import Form
+from flask_wtf import FlaskForm
 from sqlalchemy import func
 
 from forms import *
@@ -258,27 +258,36 @@ def edit_artist_submission(artist_id):
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
   form = VenueForm()
-  venue={
-    "id": 1,
-    "name": "The Musical Hop",
-    "genres": ["Jazz", "Reggae", "Swing", "Classical", "Folk"],
-    "address": "1015 Folsom Street",
-    "city": "San Francisco",
-    "state": "CA",
-    "phone": "123-123-1234",
-    "website": "https://www.themusicalhop.com",
-    "facebook_link": "https://www.facebook.com/TheMusicalHop",
-    "seeking_talent": True,
-    "seeking_description": "We are on the lookout for a local artist to play every two weeks. Please call us.",
-    "image_link": "https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60"
-  }
-  # TODO: populate form with values from venue with ID <venue_id>
+
+  # populate form with values from venue with ID <venue_id>
+  venue = Venue.query.get(venue_id)
   return render_template('forms/edit_venue.html', form=form, venue=venue)
 
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
 def edit_venue_submission(venue_id):
-  # TODO: take values from the form submitted, and update existing
+  # take values from the form submitted, and update existing
   # venue record with ID <venue_id> using the new attributes
+  try:
+    venue = Venue.query.get(venue_id)
+    venue.name=request.form.get('name')
+    venue.city=request.form.get('city')
+    venue.state=request.form.get('state')
+    venue.address=request.form.get('address')
+    venue.phone=request.form.get('phone', '')
+    venue.genres=request.form.getlist('genres')
+    venue.facebook_link=request.form.get('facebook_link', '')
+    venue.website=request.form.get('website', '')
+    venue.seeking_talent= request.form.get('seeking_talent', False)=="on"
+    venue.seeking_description=request.form.get('seeking_description', '')
+
+    db.session.commit()
+    flash('Venue ' + request.form['name'] + ' was successfully listed!')
+  except Exception as e:
+    db.session.rollback()
+    flash('Error: Venue ' + request.form.get('name') + ' can\'t be created.' + repr(e))
+
+  finally:
+    db.session.close()
   return redirect(url_for('show_venue', venue_id=venue_id))
 
 #  Create Artist
