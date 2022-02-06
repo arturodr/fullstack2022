@@ -68,8 +68,8 @@ def create_app(test_config=None):
     def get_questions():
         # Implement pagination
         page = request.args.get("page", 1, type=int)
-        start = (page - 1) * 10
-        end = start + 10
+        start = (page - 1) * QUESTIONS_PER_PAGE
+        end = start + QUESTIONS_PER_PAGE
 
         questions = Question.query.all()
         formatted_questions = [question.format() for question in questions]
@@ -155,9 +155,12 @@ def create_app(test_config=None):
 
     @app.route("/questions/search", methods=["POST"])
     def search_questions():
+
         body = request.get_json()
-        search = body.get("searchTerm", "").lower()
-        questions = Question.query.filter(func.lower(Question.question).contains(search)).all()
+        searchTerm = body.get("searchTerm", "").lower()
+        if searchTerm == "":
+            abort(422)
+        questions = Question.query.filter(func.lower(Question.question).contains(searchTerm)).all()
 
         formatted_questions = [question.format() for question in questions]
 
@@ -178,10 +181,12 @@ def create_app(test_config=None):
 
     @app.route("/categories/<int:category_id>/questions", methods=['GET'])
     def get_questions_in_category(category_id):
+        if not category_id:
+            abort(422)
         # Implement pagination
         page = request.args.get("page", 1, type=int)
-        start = (page - 1) * 10
-        end = start + 10
+        start = (page - 1) * QUESTIONS_PER_PAGE
+        end = start + QUESTIONS_PER_PAGE
 
         questions = Question.query.filter(Question.category == category_id)
         formatted_questions = [question.format() for question in questions]
@@ -214,6 +219,9 @@ def create_app(test_config=None):
         previous_questions = data.get('previous_questions')
         quiz_category = data.get('quiz_category')
 
+        if not quiz_category:
+            abort(422)
+
         question = Question.query\
             .filter(Question.category == quiz_category.get('id'))\
             .filter(Question.id.notin_(previous_questions))\
@@ -221,12 +229,39 @@ def create_app(test_config=None):
 
         if question:
             question = dict(question[0].format())
-        return jsonify({'question': question})
+        return jsonify({"success": True, 'question': question})
 
     '''
-  @TODO: 
-  Create error handlers for all expected errors 
-  including 404 and 422. 
-  '''
+    Create error handlers for all expected errors 
+    including 404 and 422. 
+    '''
+
+    @app.errorhandler(400)
+    def not_found(error):
+        return jsonify({
+            'error': 400,
+            'message': 'Bad Request'
+        }), 400
+
+    @app.errorhandler(404)
+    def not_found(error):
+        return jsonify({
+            'error': 404,
+            'message': 'Not Found'
+        }), 404
+
+    @app.errorhandler(422)
+    def unprocessable(error):
+        return jsonify({
+            'error': 422,
+            'message': 'Unprocessable Entity'
+        }), 422
+
+    @app.errorhandler(500)
+    def sever_error(error):
+        return jsonify({
+            'error': 500,
+            'message': 'Internal Server Error'
+        }), 500
 
     return app
