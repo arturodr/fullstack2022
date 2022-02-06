@@ -4,6 +4,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import random
 
+from sqlalchemy import func
+
 from models import setup_db, Question, Category
 
 QUESTIONS_PER_PAGE = 10
@@ -142,15 +144,29 @@ def create_app(test_config=None):
             abort(422)
 
     '''
-  @TODO: 
-  Create a POST endpoint to get questions based on a search term. 
-  It should return any questions for whom the search term 
-  is a substring of the question. 
+    Create a POST endpoint to get questions based on a search term. 
+    It should return any questions for whom the search term 
+    is a substring of the question. 
+    
+    TEST: Search by any phrase. The questions list will update to include 
+    only question that include that string within their question. 
+    Try using the word "title" to start. 
+    '''
 
-  TEST: Search by any phrase. The questions list will update to include 
-  only question that include that string within their question. 
-  Try using the word "title" to start. 
-  '''
+    @app.route("/questions/search", methods=["POST"])
+    def search_questions():
+        body = request.get_json()
+        search = body.get("searchTerm", "").lower()
+        questions = Question.query.filter(func.lower(Question.question).contains(search)).all()
+
+        formatted_questions = [question.format() for question in questions]
+
+        return jsonify({
+                "success": True,
+                "questions": formatted_questions,
+                "total_questions": len(questions),
+                "currentCategory": "multiple"
+            })
 
     '''
   @TODO: 
