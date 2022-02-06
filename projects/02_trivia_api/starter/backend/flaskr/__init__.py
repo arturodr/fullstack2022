@@ -77,7 +77,7 @@ def create_app(test_config=None):
             {
                 "success": True,
                 "questions": formatted_questions[start:end],
-                "totalQuestions": len(questions),
+                "total_questions": len(questions),
                 "categories": {category.id: category.type for category in categories},
                 "currentCategory": "multiple"
             }
