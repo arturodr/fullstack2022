@@ -54,11 +54,11 @@ def create_app(test_config=None):
     This endpoint should return a list of questions, 
     number of total questions, current category, categories. 
 
-  TEST: At this point, when you start the application
-  you should see questions and categories generated,
-  ten questions per page and pagination at the bottom of the screen for three pages.
-  Clicking on the page numbers should update the questions. 
-  '''
+    TEST: At this point, when you start the application
+    you should see questions and categories generated,
+    ten questions per page and pagination at the bottom of the screen for three pages.
+    Clicking on the page numbers should update the questions. 
+    '''
     @app.route("/questions", methods=["GET"])
     def get_questions():
         # Implement pagination
@@ -74,9 +74,9 @@ def create_app(test_config=None):
             {
                 "success": True,
                 "questions": formatted_questions[start:end],
-                "totalQuestions": len(formatted_questions),
+                "totalQuestions": len(questions),
                 "categories": {category.id: category.type for category in categories},
-                "currentCategory": "?"
+                "currentCategory": "multiple"
             }
         )
 
