@@ -34,10 +34,25 @@ def create_app(test_config=None):
         return response
 
     '''
-  @TODO: 
-  Create an endpoint to handle GET requests 
-  for all available categories.
-  '''
+    Create an endpoint to handle GET requests for all available categories.
+    '''
+
+    @app.route("/categories", methods=["GET"])
+    def get_categories():
+        # Implement pagination
+        page = request.args.get("page", 1, type=int)
+        start = (page - 1) * 10
+        end = start + 10
+
+        categories = Category.query.all()
+        formatted_categories = [category.format() for category in categories]
+        return jsonify(
+            {
+                "success": True,
+                "categories": formatted_categories[start:end],
+                "total_categories": len(formatted_categories),
+            }
+        )
 
     '''
   @TODO: 
