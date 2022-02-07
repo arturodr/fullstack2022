@@ -244,16 +244,23 @@ def create_app(test_config=None):
         previous_questions = data.get('previous_questions')
         quiz_category = data.get('quiz_category')
 
-        if not quiz_category:
+        if not quiz_category or quiz_category.get('id') is None:
             abort(422)
 
-        question = Question.query\
-            .filter(Question.category == quiz_category.get('id'))\
-            .filter(Question.id.notin_(previous_questions))\
-            .order_by(func.random()).limit(1)
+        if quiz_category.get('id') == 0:
+            question = Question.query \
+                .filter(Question.id.notin_(previous_questions)) \
+                .order_by(func.random()).limit(1)
+        else:
+            question = Question.query\
+                .filter(Question.category == quiz_category.get('id'))\
+                .filter(Question.id.notin_(previous_questions))\
+                .order_by(func.random()).limit(1)
 
-        if question:
+        if question[0] is not None:
             question = dict(question[0].format())
+        else:
+            abort(404)
         return jsonify({"success": True, 'question': question})
 
     '''
