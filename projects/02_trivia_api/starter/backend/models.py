@@ -40,6 +40,10 @@ class Question(db.Model):
     self.category = category
     self.difficulty = difficulty
 
+  @staticmethod
+  def total_questions():
+    return db.session.query(Question).count()
+
   def insert(self):
     db.session.add(self)
     db.session.commit()
