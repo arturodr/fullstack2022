@@ -190,3 +190,7 @@ createdb trivia_test
 psql trivia_test < trivia.psql
 python test_flaskr.py
 ```
+
+## Author
+- [Arturo Díaz Rosemberg](https://github.com/arturodr)
+- Based on the proyect trivia_api from Udacity
