@@ -112,6 +112,7 @@ def create_app(test_config=None):
                 'deleted': question_id,
             })
         except:
+            question.rollback()
             abort(422)
 
     '''
@@ -149,6 +150,7 @@ def create_app(test_config=None):
             })
 
         except Exception as e:
+            question.rollback()
             abort(422)
 
     '''
