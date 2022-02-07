@@ -114,12 +114,13 @@ def create_app(test_config=None):
 
     @app.route('/questions/<int:question_id>', methods=['DELETE'])
     def delete_question(question_id):
+
+        question = Question.query.get(question_id)
+
+        if question is None:
+            abort(404)
+
         try:
-            question = Question.query.get(question_id)
-
-            if question is None:
-                abort(404)
-
             question.delete()
 
             return jsonify({
@@ -150,6 +151,10 @@ def create_app(test_config=None):
         new_answer = body.get('answer', None)
         new_category = body.get('category', None)
         new_difficulty = body.get('difficulty', None)
+
+        if (new_question is None or new_answer is None or
+                new_category is None or new_difficulty is None):
+            abort(422)
 
         try:
             question = Question(question=new_question,
@@ -193,11 +198,11 @@ def create_app(test_config=None):
         formatted_questions = [question.format() for question in questions]
 
         return jsonify({
-                "success": True,
-                "questions": formatted_questions,
-                "total_questions": len(questions),
-                "currentCategory": "multiple"
-            })
+            "success": True,
+            "questions": formatted_questions,
+            "total_questions": len(questions),
+            "currentCategory": "multiple"
+        })
 
     '''
     Create a GET endpoint to get questions based on category.
@@ -252,9 +257,9 @@ def create_app(test_config=None):
                 .filter(Question.id.notin_(previous_questions)) \
                 .order_by(func.random()).limit(1)
         else:
-            question = Question.query\
-                .filter(Question.category == quiz_category.get('id'))\
-                .filter(Question.id.notin_(previous_questions))\
+            question = Question.query \
+                .filter(Question.category == quiz_category.get('id')) \
+                .filter(Question.id.notin_(previous_questions)) \
                 .order_by(func.random()).limit(1)
 
         if question[0] is not None:
