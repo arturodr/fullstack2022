@@ -67,22 +67,37 @@ def create_app(test_config=None):
     Clicking on the page numbers should update the questions.
     '''
 
+    def get_formatted_questions(page=1, category_id=0):
+        # generic function to get page of questions
+        current_index = page - 1
+        if category_id == 0:
+            questions = Question.query.order_by(Question.id) \
+                .limit(QUESTIONS_PER_PAGE) \
+                .offset(current_index * QUESTIONS_PER_PAGE).all()
+            total_questions = Question.total_questions()
+        else:
+            questions = Question.query.order_by(Question.id) \
+                .filter(Question.category == category_id) \
+                .limit(QUESTIONS_PER_PAGE) \
+                .offset(current_index * QUESTIONS_PER_PAGE).all()
+            total_questions = Question.query \
+                .filter(Question.category == category_id).count()
+
+        formatted_questions = [question.format() for question in questions]
+
+        return formatted_questions, total_questions
+
     @app.route("/questions", methods=["GET"])
     def get_questions():
-        # Implement pagination
         page = request.args.get("page", 1, type=int)
-        start = (page - 1) * QUESTIONS_PER_PAGE
-        end = start + QUESTIONS_PER_PAGE
-
-        questions = Question.query.all()
-        formatted_questions = [question.format() for question in questions]
+        questions, total_questions = get_formatted_questions(page)
 
         categories = Category.query.all()
         return jsonify(
             {
                 "success": True,
-                "questions": formatted_questions[start:end],
-                "total_questions": len(questions),
+                "questions": questions,
+                "total_questions": total_questions,
                 "categories": {category.id: category.type
                                for category in categories},
                 "currentCategory": "multiple"
@@ -111,7 +126,7 @@ def create_app(test_config=None):
                 'success': True,
                 'deleted': question_id,
             })
-        except:
+        except Exception as e:
             print(e)
             question.rollback()
             abort(422)
@@ -196,20 +211,16 @@ def create_app(test_config=None):
     def get_questions_in_category(category_id):
         if not category_id:
             abort(422)
-        # Implement pagination
-        page = request.args.get("page", 1, type=int)
-        start = (page - 1) * QUESTIONS_PER_PAGE
-        end = start + QUESTIONS_PER_PAGE
 
-        questions = Question.query.filter(Question.category == category_id)
-        formatted_questions = [question.format() for question in questions]
+        page = request.args.get("page", 1, type=int)
+        questions, total_questions = get_formatted_questions(page, category_id)
 
         categories = Category.query.all()
         return jsonify(
             {
                 "success": True,
-                "questions": formatted_questions[start:end],
-                "total_questions": len(formatted_questions),
+                "questions": questions,
+                "total_questions": total_questions,
                 "categories": {category.id: category.type
                                for category in categories},
                 "currentCategory": category_id
