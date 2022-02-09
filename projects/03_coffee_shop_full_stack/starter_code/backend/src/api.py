@@ -12,7 +12,7 @@ setup_db(app)
 CORS(app)
 
 '''
-@TODO uncomment the following line to initialize the database
+@ uncomment the following line to initialize the database
 !! NOTE THIS WILL DROP ALL RECORDS AND START YOUR DB FROM SCRATCH
 !! NOTE THIS MUST BE UNCOMMENTED ON FIRST RUN
 !! Running this function will add one
@@ -20,16 +20,27 @@ CORS(app)
 # db_drop_and_create_all()
 
 # ROUTES
-'''
-@TODO implement endpoint
+
+
+@app.route("/drinks", methods=["GET"])
+def get_drinks():
+    """
     GET /drinks
         it should be a public endpoint
         it should contain only the drink.short() data representation
     returns status code 200 and json {"success": True, "drinks": drinks}
         where drinks is the list of drinks
         or appropriate status code indicating reason for failure
-'''
+    """
+    drinks = Drink.query.all()
+    drinks_short = [drink.short() for drink in drinks]
 
+    return jsonify(
+        {
+            "success": True,
+            "drinks": drinks_short,
+        }
+    )
 
 '''
 @TODO implement endpoint
