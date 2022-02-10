@@ -90,7 +90,7 @@ def post_drink():
     return jsonify({
         "success": True,
         "drinks": [drink.long()]
-    }), 201
+    }), 200
 
 
 @app.route("/drinks/<int:drink_id>", methods=["PATCH"])
