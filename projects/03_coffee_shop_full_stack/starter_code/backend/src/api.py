@@ -92,8 +92,11 @@ def post_drink():
         "drinks": [drink.long()]
     }), 201
 
-'''
-@TODO implement endpoint
+
+@app.route("/drinks/<int:drink_id>", methods=["PATCH"])
+@requires_auth('patch:drinks')
+def patch_drink(drink_id):
+    """
     PATCH /drinks/<id>
         where <id> is the existing model id
         it should respond with a 404 error if <id> is not found
@@ -103,7 +106,25 @@ def post_drink():
     returns status code 200 and json {"success": True, "drinks": drink}
         where drink an array containing only the updated drink
         or appropriate status code indicating reason for failure
-'''
+    """
+    data = request.get_json()
+    drink = Drink.query.filter(Drink.id == drink_id).one_or_none()
+    if not drink:
+        abort(404)
+
+    drink.title = data.get("title", drink.title)
+    drink.recipe = data.get("recipe", drink.recipe)
+
+    # if we are updating the recipe, we get an obj that needs conversion
+    if isinstance(drink.recipe, list):
+        drink.recipe = json.dumps(drink.recipe)
+
+    drink.update()
+
+    return jsonify({
+        "success": True,
+        "drinks": [drink.long()]
+    }), 200
 
 
 '''
